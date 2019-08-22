@@ -122,6 +122,7 @@
 		03AC7B20230EF71A0065C855 /* Parser.xctemplate */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Parser.xctemplate; sourceTree = "<group>"; };
 		03AC7B22230F134A0065C855 /* FoundationExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationExtensions.swift; sourceTree = "<group>"; };
 		03AC7B25230F137D0065C855 /* SourceFile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SourceFile.swift; sourceTree = "<group>"; };
+		03AC7B28230F1C3C0065C855 /* LeanHeaders.podspec */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; path = LeanHeaders.podspec; sourceTree = "<group>"; };
 		03AF26EE1F5B89320017D886 /* LeanHeaders */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = LeanHeaders; sourceTree = BUILT_PRODUCTS_DIR; };
 		03AF26F11F5B89330017D886 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		03AF26F81F5B8DA00017D886 /* CodeBase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeBase.swift; sourceTree = "<group>"; };
@@ -253,6 +254,7 @@
 			children = (
 				03AC7B1C230EF5100065C855 /* LICENSE */,
 				03AC7B1D230EF5210065C855 /* README.md */,
+				03AC7B28230F1C3C0065C855 /* LeanHeaders.podspec */,
 				03AF26F01F5B89320017D886 /* Source */,
 				03AC7B1E230EF56E0065C855 /* Templates */,
 				0307A0211F5FD87D00A69A4D /* Tests */,
