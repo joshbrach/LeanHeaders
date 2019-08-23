@@ -22,7 +22,7 @@ class CodeBase {
     
     private let fileManager = FileManager.`default`
     
-    private let xcbLog = XCBIssueReporter()
+    private let xcbLog : XCBIssueReporter
     
     /// Path to the root directory of the codebase.
     let rootDirectory : URL
@@ -32,22 +32,23 @@ class CodeBase {
     
     /// Initializes the object to represent the codebase rooted at the given directory.
     /// Returns nil if the given path is not an existing directory.
-    convenience init?(rootDirectoryPath path: String) {
+    convenience init?(rootDirectoryPath path: String, issueReporter: XCBIssueReporter = .init()) {
         let isDirectory = UnsafeMutablePointer<ObjCBool>.allocate(capacity: 1)
         defer { isDirectory.deallocate() }
         let exists = FileManager.`default`.fileExists(atPath: path, isDirectory: isDirectory)
         
         if exists && isDirectory.pointee.boolValue {
-            self.init(rootDirectory: URL(fileURLWithPath: path, isDirectory: true))
+            self.init(rootDirectory: URL(fileURLWithPath: path, isDirectory: true), issueReporter: issueReporter)
         } else {
-            XCBIssueReporter().reportIssue(withMessage: "Cannot initialize codebase without a root directory path.")
+            issueReporter.reportIssue(withMessage: "Cannot initialize codebase without a root directory path.")
             return nil
         }
     }
     
     /// Initializes the object to represent the codebase rooted at the given directory.
     /// Returns nil if the given path is not an existing directory.
-    init?(rootDirectory path: URL) {
+    init?(rootDirectory path: URL, issueReporter: XCBIssueReporter = .init()) {
+        xcbLog = issueReporter
         rootDirectory = path
     }
     
@@ -63,7 +64,7 @@ class CodeBase {
                 $0.pathExtension == CodeBase.headerExtension
             }
         } catch let e {
-            XCBIssueReporter().reportIssue(withMessage: "Cannot search root directory of codebase for header files!")
+            xcbLog.reportIssue(withMessage: "Cannot search root directory of codebase for header files!")
             return []
         }
     }()
@@ -107,7 +108,7 @@ class CodeBase {
         guard _typeDeclarations == nil || _typeAvailabilities == nil || _typeReferences == nil else {
             return
         }
-        let parser = CodeBaseParser()
+        let parser = CodeBaseParser(issueReporter: xcbLog)
 
         timingStartTime = Date()
         let (declarations, availabilities, references) = parser.parseCodeBaseTypes(codebase: self)
@@ -226,16 +227,15 @@ extension CodeBase {
     }
     
     /// Returns true iff the given declaration is fully available for the given reference.
-    func isFull(declaration: TypeDeclaration, availableForReference reference: TypeReference) -> (Bool, issueCount: UInt) {
+    func isFull(declaration: TypeDeclaration, availableForReference reference: TypeReference) -> Bool {
         let reference_location = reference.sourceCodeRepresentation.location
         
         guard declaration.location.file != reference_location.file || declaration.location.line > reference_location.line else {
             // trivially available in the same file!
-            return (true, 0)
+            return true
         }
         
-        var issueCount : UInt = 0
-        return (enumerateAvailabilities(inFile: reference_location.file, importMatches: { (fullAvailability) -> AvailabilityUsageLevel in
+        return enumerateAvailabilities(inFile: reference_location.file, importMatches: { (fullAvailability) -> AvailabilityUsageLevel in
             
             return fullAvailability.importsFile == declaration.location.file.lastPathComponent ? .needed : .notReferenced
             
@@ -251,11 +251,10 @@ extension CodeBase {
                                                 for reference on line \(implementingReference.location.line)
                                                 """,
                                    filterableCode: "need-import-not-forward")
-                issueCount += 1
             }
             return false
             
-        }), issueCount)
+        })
     }
     
     /// Returns true iff the given declaration is shallowly available for the given reference.
@@ -287,13 +286,13 @@ extension CodeBase {
     
     // MARK: - Issues
     
-    /// Analyses the codebase, reporting issues as they are encountered, and returns the number of issues found.
-    func checkIssues() -> UInt {
+    /// Analyses the codebase, reporting issues as they are encountered.
+    func checkIssues() {
         timingStartTime = Date()
         
         // MARK: Check References
         
-        let refsIssueCount = typeReferences.map { referenceWrapper -> UInt in
+        for referenceWrapper in typeReferences {
             switch referenceWrapper {
                 
                 case .implementing( let reference ):
@@ -301,8 +300,7 @@ extension CodeBase {
 
                     if let declaration = typeDeclarations[reference.identifier]?.first(where: { reference.metatype ≈ $0.metatype }) {
 
-                        let (isAvailable, encounteredIssues) = isFull(declaration: declaration, availableForReference: referenceWrapper)
-                        if !isAvailable {
+                        if !isFull(declaration: declaration, availableForReference: referenceWrapper) {
                             // no import makes available the needed declaration…
                             xcbLog.reportIssue(atSourceCodeLocation: reference.location,
                                                ofSeverity: GlobalOptions.options.missingImportIssues,
@@ -312,9 +310,7 @@ extension CodeBase {
                                                     used in \(reference.metatype.rawValue) declaration.
                                                     """,
                                                filterableCode: "need-import-for-inheritance")
-                            return encounteredIssues + 1
                         }
-                        return encounteredIssues
 
                     }
                 
@@ -332,8 +328,7 @@ extension CodeBase {
                             case .enumeration, .structure, .closure:
                                 // actually needs full import!
 
-                                let (isAvailable, encounteredIssues) = isFull(declaration: declaration, availableForReference: referenceWrapper)
-                                if !isAvailable {
+                                if !isFull(declaration: declaration, availableForReference: referenceWrapper) {
                                     // no import makes available the needed declaration…
                                     xcbLog.reportIssue(atSourceCodeLocation: reference.location,
                                                        ofSeverity: GlobalOptions.options.missingImportIssues,
@@ -343,9 +338,7 @@ extension CodeBase {
                                                                     used as \(reference.metatype.rawValue) type.
                                                                     """,
                                                        filterableCode: "need-import-for-typedef")
-                                    return encounteredIssues + 1
                                 }
-                                return encounteredIssues
 
                             case .arbitrary(let sameas):
                                 // this was supposed to be taken care of earlier!
@@ -356,7 +349,6 @@ extension CodeBase {
                                                                 Could not find declaration of \(sameas) \
                                                                 to deduce metatype of \(declaration.identifier).
                                                                 """)
-                                return 1
 
                             case .`class`, .`protocol`:
                                 // needs forward…
@@ -373,7 +365,6 @@ extension CodeBase {
                                                                         need-forward-\
                                                                         \(declaration.metatype == .`class` ? "class" : "protocol")
                                                                         """)
-                                    return 1
                                 }
 
                         } // end switch on declaration metatype
@@ -385,14 +376,13 @@ extension CodeBase {
                     // for this tool; therefore we simply ignore the reference at this point.
                 
             } // end switch on reference wrapper
-            return 0
-        }.reduce(0, +)
+        }
 
         reportTiming(forTask: "Checking References")
 
         // MARK: Check Availabilities
         
-        let availsIssueCount = typeAvailabilities.flatMap { $0.value }.filter { $0.whichIs < .needed }.map {
+        typeAvailabilities.flatMap { $0.value }.filter { $0.whichIs < .needed }.forEach {
             let location : SourceCodeLocation
             let severity : XCBIssueReporter.Severity
             let message : String
@@ -426,16 +416,13 @@ extension CodeBase {
                 default:
                     // (.used, .forward) is not possible, and (.needed, _) is excluded by containing conditional.
                     assert(false, "How did we get ourselves in this situation, then?")
-                    return 0  // leave scope in release builds, don't count as issue
+                    return  // leave scope in release builds, don't count as issue
 
             }
             xcbLog.reportIssue(atSourceCodeLocation: location, ofSeverity: severity, withMessage: message, filterableCode: code)
-            return 1
-        }.reduce(0 as UInt, +)
+        }
 
         reportTiming(forTask: "Checking Availabilities")
-        
-        return refsIssueCount + availsIssueCount
     }
     
 }

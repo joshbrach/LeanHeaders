@@ -82,7 +82,7 @@ struct GlobalOptions {
 
 // MARK: Usage
 
-fileprivate let version = "LeanHeaders version 1.1.0 (GitHub) © J.Brach 2017, 2019"
+fileprivate let version = "LeanHeaders version 1.1.1 (GitHub) © J.Brach 2017, 2019"
 
 fileprivate let usage = """
     /path/to/LeanHeaders info | ( [options] [issueSeverities] /path/to/codebase/root )
@@ -261,11 +261,13 @@ fileprivate func main() -> Int32 {
 
     // MARK: Run
 
-    if let path = CommandLine.arguments.last, let codebase = CodeBase(rootDirectoryPath: path) {
+    let xcodeBuildIssueReporter = XCBIssueReporter()
 
-        let issueCount = codebase.checkIssues()
+    if let path = CommandLine.arguments.last, let codebase = CodeBase(rootDirectoryPath: path, issueReporter: xcodeBuildIssueReporter) {
+
+        codebase.checkIssues()
         XCBIssueReporter.wait()
-        return Int32(issueCount)
+        return Int32(xcodeBuildIssueReporter.reportedErrorCount)
 
     } else {
 

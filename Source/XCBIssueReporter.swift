@@ -39,6 +39,9 @@ class XCBIssueReporter {
                                                   attributes: [],
                                                   autoreleaseFrequency: .workItem,
                                                   target: nil)
+
+    /// The number of errors which have been reported by the receiver.
+    private(set) var reportedErrorCount : UInt = 0
     
     /// Outputs an issue in the format of an Xcode build log.
     func reportIssue(atSourceCodeLocation location: SourceCodeLocation,
@@ -57,9 +60,9 @@ class XCBIssueReporter {
                      ofSeverity severity: Severity = .error,
                      withMessage message: String, filterableCode code: String? = nil) {
         
-        guard severity != .ignored else {
-            return
-        }
+        guard severity != .ignored else { return }
+
+        if severity == .error { reportedErrorCount += 1 }
 
         let postMessage = (code != nil && GlobalOptions.options.filterableMessages) ? "  \(code!)" : ""
 
