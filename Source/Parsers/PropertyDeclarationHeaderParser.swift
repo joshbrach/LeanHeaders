@@ -93,6 +93,7 @@ class PropertyDeclarationHeaderParser : HeaderParser {
             guard typeRange.location != NSNotFound || blockRange.location != NSNotFound else {
                 let declarationLocation = file.location(ofRange: declarationRange)
                 parent.xcbLog.reportIssue(atSourceCodeLocation: declarationLocation,
+                                          ofSeverity: GlobalOptions.options.metaIssues,
                                           withMessage: "Missing non-optional component from property declaration match.")
                 return
             }
@@ -102,6 +103,7 @@ class PropertyDeclarationHeaderParser : HeaderParser {
                 guard let _ = typeDescriptor else {
                     let location = file.location(ofRange: typeRange)
                     parent.xcbLog.reportIssue(atSourceCodeLocation: location,
+                                              ofSeverity: GlobalOptions.options.metaIssues,
                                               withMessage: "Cannot parse type descriptor from property declaration match.")
                     return
                 }
@@ -120,6 +122,7 @@ class PropertyDeclarationHeaderParser : HeaderParser {
                 guard let _ = blockDescriptor else {
                     let location = file.location(ofRange: blockRange)
                     parent.xcbLog.reportIssue(atSourceCodeLocation: location,
+                                              ofSeverity: GlobalOptions.options.metaIssues,
                                               withMessage: "Cannot parse block descriptor from property declaration match.")
                     return
                     

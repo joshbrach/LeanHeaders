@@ -64,6 +64,7 @@ class ImportDirectiveHeaderParser : HeaderParser {
             
             if typeRange.location == NSNotFound {
                 parent.xcbLog.reportIssue(atSourceCodeLocation: directiveLocation,
+                                          ofSeverity: GlobalOptions.options.metaIssues,
                                           withMessage: "Missing non-optional component from compiler directive match.")
             } else if file.sourceText.substring(with: typeRange) == "include" {
                 let location = file.location(ofRange: directiveRange)
@@ -75,6 +76,7 @@ class ImportDirectiveHeaderParser : HeaderParser {
             
             if importsFileRange.location == NSNotFound {
                 parent.xcbLog.reportIssue(atSourceCodeLocation: directiveLocation,
+                                          ofSeverity: GlobalOptions.options.metaIssues,
                                           withMessage: "Missing non-optional component from import directive match.")
             } else {
                 let location = file.location(ofRange: importsFileRange)

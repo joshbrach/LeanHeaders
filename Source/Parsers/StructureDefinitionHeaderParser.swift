@@ -87,7 +87,7 @@ class StructureDefinitionHeaderParser : HeaderParser {
                 
                 if plainNameRange.location == NSNotFound {
                     parent.xcbLog.reportIssue(atSourceCodeLocation: definitionLocation,
-                                              ofSeverity: .error,
+                                              ofSeverity: GlobalOptions.options.structNameIssues,
                                               withMessage: "Unintentional anonymous structure definition; add a name to silence this issue.",
                                               filterableCode: "missing-struct-name")
                 } else {
@@ -104,13 +104,13 @@ class StructureDefinitionHeaderParser : HeaderParser {
                 
                 if typeNameRange.location == NSNotFound {
                     parent.xcbLog.reportIssue(atSourceCodeLocation: definitionLocation,
-                                              ofSeverity: .error,
+                                              ofSeverity: GlobalOptions.options.structNameIssues,
                                               withMessage: "Typedef structure definition missing name argument; add the second name to silence this issue.",
                                               filterableCode: "missing-struct-typename")
                 } else if plainNameRange.location != NSNotFound && file.sourceText.substring(with: plainNameRange) != file.sourceText.substring(with: typeNameRange) {
                     let location = file.location(ofRange: plainNameRange)
                     parent.xcbLog.reportIssue(atSourceCodeLocation: location,
-                                              ofSeverity: .error,
+                                              ofSeverity: GlobalOptions.options.structNameIssues,
                                               withMessage: "Unintentional conflicting structre definition name; change the names to silence this issue.",
                                               filterableCode: "conflicting-struct-name")
                 } else {

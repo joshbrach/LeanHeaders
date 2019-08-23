@@ -64,11 +64,13 @@ class ForwardDeclarationHeaderParser : HeaderParser {
             
             if metatypeRange.location == NSNotFound {
                 parent.xcbLog.reportIssue(atSourceCodeLocation: declarationLocation,
+                                          ofSeverity: GlobalOptions.options.metaIssues,
                                           withMessage: "Missing non-optional component from forward declaration match.")
             } else if let metatype = ForwardDeclaration.MetaType(rawValue: file.sourceText.substring(with: metatypeRange)) {
                 
                 if typesRange.location == NSNotFound {
                     parent.xcbLog.reportIssue(atSourceCodeLocation: declarationLocation,
+                                              ofSeverity: GlobalOptions.options.metaIssues,
                                               withMessage: "Missing non-optional component from forward declaration match.")
                 } else {
                     let location = file.location(ofRange: typesRange)
@@ -84,6 +86,7 @@ class ForwardDeclarationHeaderParser : HeaderParser {
                 
             } else {
                 parent.xcbLog.reportIssue(atSourceCodeLocation: declarationLocation,
+                                          ofSeverity: GlobalOptions.options.metaIssues,
                                           withMessage: "Cannot determine metatype of forward declaration match.")
             }
             

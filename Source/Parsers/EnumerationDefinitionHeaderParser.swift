@@ -109,12 +109,13 @@ class EnumerationDefinitionHeaderParser : HeaderParser {
             } else if macroNameRange.location == NSNotFound {
                 let location = file.location(ofRange: macroRange)
                 parent.xcbLog.reportIssue(atSourceCodeLocation: location,
+                                          ofSeverity: GlobalOptions.options.enumNameIssues,
                                           withMessage: "Macro enumeration definition missing name argument; add the second argument to silence this issue.",
                                           filterableCode: "missing-enum-macroname")
             } else if typeNameRange.location != NSNotFound && file.sourceText.substring(with: macroNameRange) != file.sourceText.substring(with: typeNameRange) {
                 let location = file.location(ofRange: typeNameRange)
                 parent.xcbLog.reportIssue(atSourceCodeLocation: location,
-                                          ofSeverity: .error,
+                                          ofSeverity: GlobalOptions.options.enumNameIssues,
                                           withMessage: "Unintentional conflicting enumeration definition name; remove the non-macro argument name to silence this issue.",
                                           filterableCode: "conflicting-enum-name")
             } else {
@@ -131,7 +132,7 @@ class EnumerationDefinitionHeaderParser : HeaderParser {
                 file.sourceText.substring(with: macroNameRange) == file.sourceText.substring(with: typeNameRange) {
                 let location = file.location(ofRange: typeNameRange)
                 parent.xcbLog.reportIssue(atSourceCodeLocation: location,
-                                          ofSeverity: .warning,
+                                          ofSeverity: GlobalOptions.options.enumNameIssues,
                                           withMessage: "Unintentional redundant enumeration definition name; remove the non-macro argument name to silence this issue.",
                                           filterableCode: "redundant-enum-name")
             }
@@ -142,13 +143,13 @@ class EnumerationDefinitionHeaderParser : HeaderParser {
                 
                 if typeNameRange.location == NSNotFound {
                     parent.xcbLog.reportIssue(atSourceCodeLocation: definitionLocation,
-                                              ofSeverity: .error,
+                                              ofSeverity: GlobalOptions.options.enumNameIssues,
                                               withMessage: "Typedef enumeration definition missing name argument; add the second name to silence this issue.",
                                               filterableCode: "missing-enum-typename")
                 } else if plainNameRange.location != NSNotFound && file.sourceText.substring(with: plainNameRange) != file.sourceText.substring(with: typeNameRange) {
                     let location = file.location(ofRange: plainNameRange)
                     parent.xcbLog.reportIssue(atSourceCodeLocation: location,
-                                              ofSeverity: .error,
+                                              ofSeverity: GlobalOptions.options.enumNameIssues,
                                               withMessage: "Unintentional deviation of enumeration definition name; change the names to silence this issue.",
                                               filterableCode: "conflicting-enum-typename")
                     // this program will *not* match C compound types (e.g. 'enum Identifier', 'struct Identifier')
@@ -167,7 +168,7 @@ class EnumerationDefinitionHeaderParser : HeaderParser {
                 
                 if plainNameRange.location == NSNotFound {
                     parent.xcbLog.reportIssue(atSourceCodeLocation: definitionLocation,
-                                              ofSeverity: .error,
+                                              ofSeverity: GlobalOptions.options.enumNameIssues,
                                               withMessage: "Unintentional anonymous enumeration definition; add a name to silence this issue.",
                                               filterableCode: "missing-enum-name")
                 } else {

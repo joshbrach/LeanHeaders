@@ -245,7 +245,7 @@ extension CodeBase {
             if case .implementing(let implementingReference) = reference,
                 shallowAvailability.identifier == implementingReference.identifier && implementingReference.metatype ≈ shallowAvailability.metatype {
                 xcbLog.reportIssue(atSourceCodeLocation: shallowAvailability.location,
-                                   ofSeverity: .warning,
+                                   ofSeverity: GlobalOptions.options.missingImportIssues,
                                    withMessage: """
                                                 Found forward declaration when full declaration is needed \
                                                 for reference on line \(implementingReference.location.line)
@@ -305,6 +305,7 @@ extension CodeBase {
                         if !isAvailable {
                             // no import makes available the needed declaration…
                             xcbLog.reportIssue(atSourceCodeLocation: reference.location,
+                                               ofSeverity: GlobalOptions.options.missingImportIssues,
                                                withMessage: """
                                                     Missing import of "\(declaration.location.file.lastPathComponent)"
                                                     for \(declaration.metatype) \(reference.identifier) \
@@ -335,6 +336,7 @@ extension CodeBase {
                                 if !isAvailable {
                                     // no import makes available the needed declaration…
                                     xcbLog.reportIssue(atSourceCodeLocation: reference.location,
+                                                       ofSeverity: GlobalOptions.options.missingImportIssues,
                                                        withMessage: """
                                                                     Missing import of "\(declaration.location.file.lastPathComponent)"
                                                                     for \(declaration.metatype) \(reference.identifier) \
@@ -349,6 +351,7 @@ extension CodeBase {
                                 // this was supposed to be taken care of earlier!
 
                                 xcbLog.reportIssue(atSourceCodeLocation: declaration.location,
+                                                   ofSeverity: GlobalOptions.options.metaIssues,
                                                    withMessage: """
                                                                 Could not find declaration of \(sameas) \
                                                                 to deduce metatype of \(declaration.identifier).
@@ -361,6 +364,7 @@ extension CodeBase {
                                 if !isForward(declaration: declaration, availableForReference: referenceWrapper) {
                                     // no forward makes available the needed declaration…
                                     xcbLog.reportIssue(atSourceCodeLocation: reference.location,
+                                                       ofSeverity: GlobalOptions.options.missingForwardIssue,
                                                        withMessage: """
                                                                     Missing forward declaration of \(declaration.metatype) \(reference.identifier) \
                                                                     used as \(reference.metatype.rawValue) type.
@@ -390,17 +394,20 @@ extension CodeBase {
         
         let availsIssueCount = typeAvailabilities.flatMap { $0.value }.filter { $0.whichIs < .needed }.map {
             let location : SourceCodeLocation
+            let severity : XCBIssueReporter.Severity
             let message : String
             let code : String
             switch $0 {
 
                 case ( .`import`(let fullAvailability),   .notReferenced ):
                     location = fullAvailability.location
+                    severity = GlobalOptions.options.redundantImportIssues
                     message = "Unnecessary import of file \(fullAvailability.importsFile)."
                     code = "not-needed-import"
 
                 case ( .forward(let shallowAvailability), .notReferenced ):
                     location = shallowAvailability.location
+                    severity = GlobalOptions.options.redundantForwardIssue
                     message = """
                                 Unnecessary forward declaration of \
                                 \(shallowAvailability.metatype.rawValue) \(shallowAvailability.identifier).
@@ -409,6 +416,7 @@ extension CodeBase {
 
                 case ( .`import`(let fullAvailability),   .used ):
                     location = fullAvailability.location
+                    severity = GlobalOptions.options.redundantImportIssues
                     message = """
                                 Unnecessary import of file \(fullAvailability.importsFile) \
                                 when only forward declarations are needed.
@@ -421,7 +429,7 @@ extension CodeBase {
                     return 0  // leave scope in release builds, don't count as issue
 
             }
-            xcbLog.reportIssue(atSourceCodeLocation: location, withMessage: message, filterableCode: code)
+            xcbLog.reportIssue(atSourceCodeLocation: location, ofSeverity: severity, withMessage: message, filterableCode: code)
             return 1
         }.reduce(0 as UInt, +)
 

@@ -69,16 +69,19 @@ class ClosureSignatureDefinitionHeaderParser : HeaderParser {
             
             guard signatureRange.location != NSNotFound else {
                 parent.xcbLog.reportIssue(atSourceCodeLocation: definitionLocation,
+                                          ofSeverity: GlobalOptions.options.metaIssues,
                                           withMessage: "Missing non-optional component from closure signature definition match.")
                 return
             }
             guard let blockDescriptor = blockDescriptorParser.parseIdentifiers(inRange: signatureRange, ofSourceFile: file) else {
                 parent.xcbLog.reportIssue(atSourceCodeLocation: definitionLocation,
+                                          ofSeverity: GlobalOptions.options.metaIssues,
                                           withMessage: "Cannot parse block descriptor from closure signature definition match.")
                 return
             }
             guard let typeName = blockDescriptor.identifier else {
                 parent.xcbLog.reportIssue(atSourceCodeLocation: definitionLocation,
+                                          ofSeverity: GlobalOptions.options.metaIssues,
                                           withMessage: "Missing non-optional component from closure signature definition match.")
                 return
             }

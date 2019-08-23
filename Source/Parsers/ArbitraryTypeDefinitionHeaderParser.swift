@@ -76,9 +76,11 @@ class ArbitraryTypeDefinitionHeaderParser : HeaderParser {
             
             if sameasRange.location == NSNotFound {
                 parent.xcbLog.reportIssue(atSourceCodeLocation: definitionLocation,
+                                          ofSeverity: GlobalOptions.options.metaIssues,
                                           withMessage: "Missing non-optional component from arbitrary definition match.")
             } else if typeRange.location == NSNotFound {
                 parent.xcbLog.reportIssue(atSourceCodeLocation: definitionLocation,
+                                          ofSeverity: GlobalOptions.options.metaIssues,
                                           withMessage: "Missing non-optional component from arbitrary definition match.")
             } else if let sameasDescriptor = typeDescriptorParser.parseIdentifiers(inRange: sameasRange, ofSourceFile: file) {
                 let metatype : TypeDeclaration.MetaType

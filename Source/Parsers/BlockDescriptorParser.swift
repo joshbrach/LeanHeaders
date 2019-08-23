@@ -125,7 +125,7 @@ class BlockDescriptorParser {
         guard let match = engine.firstMatch(in: file.sourceText as String, range: wholeRange) else {
             let matchlocation = file.location(ofRange: wholeRange)
             parent.xcbLog.reportIssue(atSourceCodeLocation: matchlocation,
-                                      ofSeverity: .warning,
+                                      ofSeverity: GlobalOptions.options.metaIssues,
                                       withMessage: """
                                                     Cannot parse block descriptor from range
                                                     '\(file.sourceText.substring(with: wholeRange))'.
@@ -157,13 +157,17 @@ class BlockDescriptorParser {
         
         if returnTypeRange.location == NSNotFound {
             let location = file.location(ofRange: match.range)
-            parent.xcbLog.reportIssue(atSourceCodeLocation: location, withMessage: "Missing non-optional component from block descriptor match.")
+            parent.xcbLog.reportIssue(atSourceCodeLocation: location,
+                                      ofSeverity: GlobalOptions.options.metaIssues,
+                                      withMessage: "Missing non-optional component from block descriptor match.")
             return nil
         } else {
             let typeDescriptor = typeDescriptorParser.parseIdentifiers(inRange: returnTypeRange, ofSourceFile: file)
             guard let _ = typeDescriptor else {
                 let location = file.location(ofRange: returnTypeRange)
-                parent.xcbLog.reportIssue(atSourceCodeLocation: location, withMessage: "Cannot parse return type from block descriptor match.")
+                parent.xcbLog.reportIssue(atSourceCodeLocation: location,
+                                          ofSeverity: GlobalOptions.options.metaIssues,
+                                          withMessage: "Cannot parse return type from block descriptor match.")
                 return nil
             }
             returnType = typeDescriptor!
@@ -189,6 +193,7 @@ class BlockDescriptorParser {
                 guard typeRange.location != NSNotFound else {
                     let parameterLocation = file.location(ofRange: result.range)
                     parent.xcbLog.reportIssue(atSourceCodeLocation: parameterLocation,
+                                              ofSeverity: GlobalOptions.options.metaIssues,
                                               withMessage: "Missing non-optional component from block parameter match.")
                     return
                 }

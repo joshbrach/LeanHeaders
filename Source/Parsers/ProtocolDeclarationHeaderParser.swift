@@ -75,6 +75,7 @@ class ProtocolDeclarationHeaderParser : HeaderParser {
             if protocolRange.location == NSNotFound {
                 let declarationLocation = file.location(ofRange: declarationRange)
                 parent.xcbLog.reportIssue(atSourceCodeLocation: declarationLocation,
+                                          ofSeverity: GlobalOptions.options.metaIssues,
                                           withMessage: "Missing non-optional component from protocol declaration match.")
             } else {
                 let location = file.location(ofRange: protocolRange)

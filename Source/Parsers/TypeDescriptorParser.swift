@@ -229,7 +229,7 @@ class TypeDescriptorParser {
         if (results?.count ?? 0) > 1 {
             let location = file.location(ofRange: wholeRange)
             parent.xcbLog.reportIssue(atSourceCodeLocation: location,
-                                      ofSeverity: .warning,
+                                      ofSeverity: GlobalOptions.options.metaIssues,
                                       withMessage: "Unexpectedly found multiple type descriptors in range '\(file.sourceText.substring(with: wholeRange))'.")
         }
         return results?.first
@@ -247,7 +247,7 @@ class TypeDescriptorParser {
         guard let match = engine.firstMatch(in: file.sourceText as String, range: wholeRange) else {
             let matchlocation = file.location(ofRange: wholeRange)
             parent.xcbLog.reportIssue(atSourceCodeLocation: matchlocation,
-                                      ofSeverity: .warning,
+                                      ofSeverity: GlobalOptions.options.metaIssues,
                                       withMessage: "Cannot parse type descriptor from range '\(file.sourceText.substring(with: wholeRange))'.")
             return nil
         }
@@ -274,7 +274,9 @@ class TypeDescriptorParser {
         
         if identifierRange.location == NSNotFound {
             let location = file.location(ofRange: match.range)
-            parent.xcbLog.reportIssue(atSourceCodeLocation: location, withMessage: "Cannot parse primary identifier from type descriptor.")
+            parent.xcbLog.reportIssue(atSourceCodeLocation: location,
+                                      ofSeverity: GlobalOptions.options.metaIssues,
+                                      withMessage: "Cannot parse primary identifier from type descriptor.")
             return nil
         } else {
             let location = file.location(ofRange: identifierRange)
@@ -348,7 +350,9 @@ class TypeDescriptorParser {
             } else {
                 let range = NSRange(location: specifiersRange.upperBound, length: 1)
                 let location = file.location(ofRange: range)
-                parent.xcbLog.reportIssue(atSourceCodeLocation: location, withMessage: "Improperly nested generic arguments.")
+                parent.xcbLog.reportIssue(atSourceCodeLocation: location,
+                                          ofSeverity: GlobalOptions.options.metaIssues,
+                                          withMessage: "Improperly nested generic arguments.")
             }
         }
 
@@ -386,7 +390,7 @@ class TypeDescriptorParser {
                 } else {
                     let location = file.location(ofRange: recoveryRange)
                     parent.xcbLog.reportIssue(atSourceCodeLocation: location,
-                                            ofSeverity: .warning,
+                                            ofSeverity: GlobalOptions.options.metaIssues,
                                             withMessage: "Unable to recover from ambiguous type descriptor list.")
                 }
             }
