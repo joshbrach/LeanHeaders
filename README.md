@@ -41,6 +41,17 @@ If at first you start using LeanHeaders and you're bombarded with hundreds or th
 2) `--redundantForward`, which are completely not needed.
 3) `--redundantImport`, which are both the completely not needed and the not strictly needed imports.
 
+## Building
+
+I'm not sure if anyone else can build this project without slight modifications to the code-signing.  However, once you've sorted out your local code-signing, you can build and archive a release for GitHub & CocoaPods with the following 'one' liner:
+
+```sh
+xcrun xcodebuild archive -scheme 'LeanHeaders' -archivePath ./LeanHeaders.xcarchive && \
+    mv ./LeanHeaders.xcarchive/Products/usr/local/bin/LeanHeaders ./LeanHeaders && \
+    zip -X LeanHeaders.zip LeanHeaders LICENSE README.md && \
+    rm -fR ./LeanHeaders.xcarchive LeanHeaders
+```
+
 ## History
 
 LeanHeaders was mostly written over the span of a few months in late 2017 by Joshua Brach.  It was published as Open-Source Software via GitHub in 2019.
